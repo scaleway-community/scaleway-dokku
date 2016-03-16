@@ -13,10 +13,9 @@ RUN /usr/local/sbin/scw-builder-enter
 
 
 # Upgrade system and install packages
-RUN apt-get -q update                                                                                        \
- && apt-get --force-yes -y -qq upgrade                                                                       \
- && apt-get --force-yes install -y -q dokku                                                                  \
- && apt-get clean
+ENV DOKKU_TAG=v0.4.14
+RUN wget https://raw.githubusercontent.com/dokku/dokku/v0.4.14/bootstrap.sh  \
+ && sudo DOKKU_TAG=$DOKKU_TAG bash bootstrap.sh
 
 
 # Patch rootfs
