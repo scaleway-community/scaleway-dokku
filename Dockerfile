@@ -13,9 +13,25 @@ RUN /usr/local/sbin/scw-builder-enter
 
 
 # Upgrade system and install packages
+RUN echo "Configure aptitude"                                      \
+ && wget -nv -O - https://packagecloud.io/gpg.key | apt-key add -  \
+ && echo "deb https://packagecloud.io/dokku/dokku/ubuntu/ trusty main" | tee /etc/apt/sources.list.d/dokku.list  \
+ && apt-get update -qq                                             \
+ && echo "Install herokuish"                                       \
+ && apt-get download herokuish                                     \
+ && dpkg --unpack herokuish*.deb                                   \
+ && rm /var/lib/dpkg/info/herokuish.postinst                       \
+ && dpkg --configure herokuish                                     \
+ && apt-get install -yf                                            \
+ && apt-get clean                                                  \
+ && rm -f herokuish*.deb                                           \
+ && echo "Install Dokku"                                           \
+ && apt-get -q -y install dokku                                    \
+ && apt-get clean
+
+
+# Configure env for docker inheriting (not used by this Dockerfile)
 ENV DOKKU_TAG=v0.4.14
-RUN wget https://raw.githubusercontent.com/dokku/dokku/v0.4.14/bootstrap.sh  \
- && sudo DOKKU_TAG=$DOKKU_TAG bash bootstrap.sh
 
 
 # Patch rootfs
