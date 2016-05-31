@@ -1,42 +1,59 @@
 ## -*- docker-image-name: "scaleway/dokku:latest" -*-
-FROM scaleway/docker:amd64-latest
+FROM scaleway/ubuntu:amd64-trusty
 # following 'FROM' lines are used dynamically thanks do the image-builder
 # which dynamically update the Dockerfile if needed.
-#FROM scaleway/docker:armhf-latest	# arch=armv7l
-#FROM scaleway/docker:arm64-latest	# arch=arm64
-#FROM scaleway/docker:i386-latest	# arch=i386
-#FROM scaleway/docker:mips-latest	# arch=mips
+#FROM scaleway/ubuntu:armhf-trusty	# arch=armv7l
+#FROM scaleway/ubuntu:arm64-trusty	# arch=arm64
+#FROM scaleway/ubuntu:i386-trusty	# arch=i386
+#FROM scaleway/ubuntu:mips-trusty	# arch=mips
 
 
 # Prepare rootfs for image-builder
 RUN /usr/local/sbin/scw-builder-enter
 
-
-# Upgrade system and install packages
-RUN echo "Configure aptitude"                                      \
- && wget -nv -O - https://packagecloud.io/gpg.key | apt-key add -  \
- && echo "deb https://packagecloud.io/dokku/dokku/ubuntu/ trusty main" | tee /etc/apt/sources.list.d/dokku.list  \
- && apt-get update -qq                                             \
- && echo "Install herokuish"                                       \
- && apt-get download herokuish                                     \
- && dpkg --unpack herokuish*.deb                                   \
- && rm /var/lib/dpkg/info/herokuish.postinst                       \
- && dpkg --configure herokuish                                     \
- && apt-get install -yf                                            \
- && apt-get clean                                                  \
- && rm -f herokuish*.deb                                           \
- && echo "Install Dokku"                                           \
- && apt-get -q -y install dokku                                    \
+# Install packages
+RUN sed -i '/mirror.scaleway/s/^/#/' /etc/apt/sources.list \
+ && apt-get -q update                   \
+ && apt-get --force-yes -y -qq upgrade  \
+ && apt-get --force-yes install -y -q   \
+      apparmor                          \
+      arping                            \
+      aufs-tools                        \
+      btrfs-tools                       \
+      bridge-utils                      \
+      cgroup-lite                       \
+      git                               \
+      ifupdown                          \
+      kmod                              \
+      lxc                               \
+      make                              \
+      python-setuptools                 \
+      software-properties-common        \
+      vlan                              \
  && apt-get clean
 
 
+# Install docker
+RUN curl -L https://get.docker.com/ | sh
+
 # Configure env for docker inheriting (not used by this Dockerfile)
-ENV DOKKU_TAG=v0.4.14
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DOKKU_TAG=v0.5.7
+
+# Install dokku from source
+RUN cd /root                                                       \
+ && git clone https://github.com/dokku/dokku.git                   \
+ && cd dokku                                                       \
+ && git fetch origin                                               \
+ && git checkout $DOKKU_TAG                                        \
+ && echo "Install Dokku"                                           \
+ && CI="none" make install                                         \
+ && apt-get clean
 
 
 # Patch rootfs
 #ADD ./overlay/ /
 
-
 # Clean rootfs from image-builder
 RUN /usr/local/sbin/scw-builder-leave
+
