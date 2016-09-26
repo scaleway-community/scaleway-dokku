@@ -38,7 +38,7 @@ RUN curl -L https://get.docker.com/ | sh
 
 # Configure env for docker inheriting (not used by this Dockerfile)
 ENV DEBIAN_FRONTEND=noninteractive
-ENV DOKKU_TAG=v0.5.7
+ENV DOKKU_TAG=v0.7.2
 
 # Install dokku from source
 RUN cd /root                                                       \
