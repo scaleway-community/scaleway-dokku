@@ -7,6 +7,7 @@ FROM scaleway/ubuntu:amd64-trusty
 #FROM scaleway/ubuntu:i386-trusty	# arch=i386
 #FROM scaleway/ubuntu:mips-trusty	# arch=mips
 
+MAINTAINER Scaleway <opensource@scaleway.com> (@scaleway)
 
 # Prepare rootfs for image-builder
 RUN /usr/local/sbin/scw-builder-enter
